@@ -1,4 +1,4 @@
-#define HT_BASE_SIZE 53
+#define HT_BASE_SIZE 64
 
 // the key-value items
 typedef struct {

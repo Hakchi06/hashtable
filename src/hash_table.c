@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "hash_table.h"
 
@@ -32,7 +33,7 @@ static void ht_del_item(ht_item* item) {
 void ht_del_hash_table(ht_hash_table* ht) {
 	for (int i = 0; i < ht->size; i++) {
 		ht_item* item = ht->items[i];
-		if(item != NULL) // there is an item in this position
+		if(item != NULL && item != &HT_DELETED_ITEM)
 			ht_del_item(item);
 	}
 	free(ht->items);
@@ -50,12 +51,42 @@ static int ht_hash(const char* key, const int m) {
 	return (int)(index < 0) ? -index : index; // Ensure the index is non-negative
 }
 
+// Functions to fix collisions in the hash table
+
+int get_max(int a, int b) {
+	return (a > b) ? a : b;
+}
+
+static int ht_get_next_index(int index, const int i, const int m, const char* key) {
+	/*
+	* This function calculates the next index in the hash table
+	* It's important that the size of the hash table is a power of two
+	* and sumK is an odd number
+	*/
+
+	int sumK = 0; // Sum of ASCII values of the key characters
+	for(int k = 0; k < strlen(key); k++) {
+		sumK += key[k];
+	}
+	
+	if(sumK % 2 == 0) sumK++; // Ensure sumK is odd
+
+	index = (index + get_max(1, sumK/m) * i) % m;
+	return index;
+}
+
+
 // Operations for the hash table
 // Function to insert an item into the hash table
 
 void ht_insert(ht_hash_table* ht, const char* key, const char* value) {
 	ht_item* item = ht_new_item(key, value);
 	int index = ht_hash(item->key, ht->size);
+	int i = 0; // count of collisions
+	while (ht->items[index] != NULL) {
+		i++;
+		index = ht_get_next_index(index, i, ht->size, key);
+	}
 	ht->items[index] = item;
 	ht->count++;
 }
@@ -63,20 +94,30 @@ void ht_insert(ht_hash_table* ht, const char* key, const char* value) {
 // Function to delete an item from the hash table
 void ht_delete(ht_hash_table* ht, const char* key) {
 	int index = ht_hash(key, ht->size);
-	ht_item* item = ht->items[index];
-
-	if (item != NULL) {
-		ht_del_item(item); // Delete the item
-		ht->items[index] = &HT_DELETED_ITEM; // Mark the item as deleted
-		ht->count--;
+	int i = 0; // count of collisions
+	while(ht->items[index] != NULL) {
+		ht_item* item = ht->items[index];
+		if(strcmp(item->key, key) == 0 && item != &HT_DELETED_ITEM) {
+			ht_del_item(item); // Delete the item
+			ht->items[index] = &HT_DELETED_ITEM; // Mark the item as deleted
+			ht->count--;
+		}
+		i++;
+		index = ht_get_next_index(index, i, ht->size, key);
 	}
 }
 
 // Function to search for an item in the hash table
 char* ht_search(ht_hash_table* ht, const char* key) {
 	int index = ht_hash(key, ht->size);
-	ht_item* item = ht->items[index];
-	if (item != NULL) {	// this expression will be used in the next update && strcmp(item->key, key) == 0 
-		return item->value;
+	int i = 0; // count of collisions
+	while(ht->items[index] != NULL) {
+		ht_item* item = ht->items[index];
+		if (strcmp(item->key, key) == 0 && item != &HT_DELETED_ITEM) {
+			return item->value; // Return the value if the key matches
+		}
+		i++;
+		index = ht_get_next_index(index, i, ht->size, key);
 	}
+	return NULL; // Return NULL if the key is not found
 }

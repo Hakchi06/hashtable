@@ -137,11 +137,9 @@
   <ItemGroup>
     <ClCompile Include="main.c" />
     <ClCompile Include="src\hash_table.c" />
-    <ClCompile Include="src\prime.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\hash_table.h" />
-    <ClInclude Include="src\prime.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

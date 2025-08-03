@@ -1,54 +1,118 @@
 #include <stdio.h>
 #include "hash_table.h"
 
+
+/*You can use the following text to test the hash table implementation (copy&paste into the console):
+1
+apple
+red
+1
+banana
+yellow
+1
+grape
+purple
+1
+lemon
+bright
+1
+lime
+green
+1
+melon
+orange
+1
+peach
+blush
+1
+pear
+fresh
+1
+plum
+deep
+1
+kiwi
+tart
+1
+mango
+juicy
+1
+berry
+sweet
+1
+cherry
+crisp
+1
+fig
+soft
+1
+date
+dry
+*/
+
 int main() {
 	ht_hash_table* ht = ht_new_table();
+	char key[256];
+	char value[256];
+	int option = 0;
 
-	// Insert items into the hash table
-	ht_insert(ht, "Alice", "01b9f3ae8d4a4c0bbf98e1b9cd7a3eaf");
-	ht_insert(ht, "Max", "73cd4a6f1dc24805ab2de2cc857d317e");
-	ht_insert(ht, "Leo", "9a6efb2c7e6342dcb1c5eac88f02b4ee");
-	
-	ht_insert(ht, "clave29", "this value is entered first");
-	ht_insert(ht, "clave51", "this value overwrites the value of clave29");
+	while (option != 5) {
+		printf("Options:\n");
+		printf("1. Insert key-value pair\n");
+		printf("2. Search for a key\n");
+		printf("3. Delete a key\n");
+		printf("4. Print hash table\n");
+		printf("5. Exit\n");
+		printf(">>: ");
 
-	// Print the items in the hash table
-	printf("Hash Table Items:\n");
-	for (int i = 0; i < ht->size; i++) {
-		ht_item* item = ht->items[i];
-		if (item != NULL) {
-			printf("Index: %d, Value: %s\n", i, item->value);
+		scanf_s("%d", &option);
+
+		if(option == 1) {
+			printf("Enter key: ");
+			scanf_s("%255s", key, (unsigned)sizeof(key));
+
+			printf("Enter value: ");
+			scanf_s("%255s", value, (unsigned)sizeof(value));
+
+			ht_insert(ht, key, value);
+			printf("Inserted (%s, %s)\n", key, value);
+
+		} else if(option == 2) {
+			printf("Enter key to search: ");
+			scanf_s("%255s", key, (unsigned)sizeof(key));
+
+			char* value = ht_search(ht, key);
+			if(value) {
+				printf("Value: %s\n", value);
+			} else {
+				printf("Key not found.\n");
+			}
+
+		} else if(option == 3) {
+			printf("Enter key to delete: ");
+			scanf_s("%255s", key, (unsigned)sizeof(key));
+
+			ht_delete(ht, key);
+			printf("Deleted key: %s\n", key);
+
+		} else if(option == 4) {
+			printf("Hash Table Items:\n");
+			for (int i = 0; i < ht->size; i++) {
+				ht_item* item = ht->items[i];
+				if (item != NULL) {
+					printf("Index: %d, Key: %s, Value: %s\n", i, item->key, item->value);
+				}
+			}
+		} else if(option == 5) {
+			printf("Exiting...\n");
+		} else {
+			printf("Invalid option. Please try again.\n");
 		}
-	}
 
-	char keys[][20] = {
-		"Alice",
-		"Max",
-		"Leo",
-		"clave29",
-		"clave51"
-	};
-	
-	// Search for keys in the hash table
-	printf("\nSearching for keys:\n");
-	int lenght = sizeof(keys) / sizeof(keys[0]);
-	for (int i = 0; i < lenght; i++) {
-		char* value = ht_search(ht, keys[i]);
-		printf("Key: %s, Value: %s\n", keys[i], value);
-		
+		// Clear the input buffer
+		int c;
+		while ((c = getchar()) != '\n' && c != EOF);
 	}
-
-	ht_delete(ht, "clave29");
-	// Print the items in the hash table after deletion
-	printf("\nHash Table Items:\n");
-	for (int i = 0; i < ht->size; i++) {
-		ht_item* item = ht->items[i];
-		if (item != NULL) {
-			printf("Index: %d, Value: %s\n", i, item->value);
-		}
-	}
-
-	// delete the hash table
 	ht_del_hash_table(ht);
 
 	return 0;
