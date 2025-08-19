@@ -65,21 +65,21 @@ int main() {
 		printf("5. Exit\n");
 		printf(">>: ");
 
-		scanf_s("%d", &option);
+		scanf("%d", &option);
 
 		if(option == 1) {
 			printf("Enter key: ");
-			scanf_s("%255s", key, (unsigned)sizeof(key));
+			scanf("%s", key);
 
 			printf("Enter value: ");
-			scanf_s("%255s", value, (unsigned)sizeof(value));
+			scanf("%s", value);
 
 			ht_insert(ht, key, value);
 			printf("Inserted (%s, %s)\n", key, value);
 
 		} else if(option == 2) {
 			printf("Enter key to search: ");
-			scanf_s("%255s", key, (unsigned)sizeof(key));
+			scanf("%s", key);
 
 			char* value = ht_search(ht, key);
 			if(value) {
@@ -90,7 +90,7 @@ int main() {
 
 		} else if(option == 3) {
 			printf("Enter key to delete: ");
-			scanf_s("%255s", key, (unsigned)sizeof(key));
+			scanf("%s", key);
 
 			ht_delete(ht, key);
 			printf("Deleted key: %s\n", key);
@@ -103,6 +103,9 @@ int main() {
 					printf("Index: %d, Key: %s, Value: %s\n", i, item->key, item->value);
 				}
 			}
+			printf("Hash table size: %d\n", ht->size);
+			printf("Hash table count: %d\n", ht->count);
+
 		} else if(option == 5) {
 			printf("Exiting...\n");
 		} else {
