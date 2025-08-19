@@ -9,17 +9,21 @@ static ht_item HT_DELETED_ITEM = {NULL, NULL}; // A special item to mark deleted
 
 static ht_item* ht_new_item(const char* key, const char* value) {
 	ht_item* item = malloc(sizeof(ht_item));
-	item->key = _strdup(key);
-	item->value = _strdup(value);
+	item->key = strdup(key);
+	item->value = strdup(value);
 	return item;
 }
 
-ht_hash_table* ht_new_table() {
+ht_hash_table* ht_new_sized_table(const int size) {
 	ht_hash_table* ht = malloc(sizeof(ht_hash_table));
-	ht->size = HT_BASE_SIZE;
+	ht->size = size;
 	ht->count = 0;
 	ht->items = calloc((size_t)ht->size, sizeof(ht_item*));
 	return ht;
+}
+
+ht_hash_table* ht_new_table(){
+	return ht_new_sized_table(HT_BASE_SIZE);
 }
 
 // Functions to delete an item from the hash table and a hash table
@@ -76,6 +80,42 @@ static int ht_get_next_index(int index, const int i, const int m, const char* ke
 }
 
 
+// Functions to resize the hash table
+
+static void ht_resize(const int new_size, ht_hash_table* ht){
+	ht_hash_table* new_ht = ht_new_sized_table(new_size);
+
+	for (int i = 0; i < ht->size; i++) {
+		ht_item* item = ht->items[i];
+		if (item != NULL && item != &HT_DELETED_ITEM) {
+			ht_insert(new_ht, item->key, item->value);
+		}
+    }
+
+	// now, we need to switch the content of the old hash table with the new one
+	const int tmp_size = ht->size;
+	ht->size = new_ht->size;
+	new_ht->size = tmp_size;
+	
+	ht->count = new_ht->count;
+
+	ht_item** tmp_items = ht->items;
+	ht->items = new_ht->items;
+	new_ht->items = tmp_items;
+
+	ht_del_hash_table(new_ht); // Delete the new hash table
+}
+
+void ht_resize_up(ht_hash_table* ht){
+	const int new_size = pow(2, log(ht->size)/log(2) + 1);  // 2^(actual_size + 1)
+	ht_resize(new_size, ht);
+}
+
+void ht_resize_down(ht_hash_table* ht){
+	const int new_size = pow(2, log(ht->size)/log(2) - 1);  // 2^(actual_size - 1)
+	ht_resize(new_size, ht);
+}
+
 // Operations for the hash table
 // Function to insert an item into the hash table
 
@@ -83,6 +123,12 @@ void ht_insert(ht_hash_table* ht, const char* key, const char* value) {
 	ht_item* item = ht_new_item(key, value);
 	int index = ht_hash(item->key, ht->size);
 	int i = 0; // count of collisions
+	int load = ht->count*100/ht->size;
+
+	if(load > 70){
+		ht_resize_up(ht);
+	}
+
 	while (ht->items[index] != NULL) {
 		i++;
 		index = ht_get_next_index(index, i, ht->size, key);
@@ -95,6 +141,12 @@ void ht_insert(ht_hash_table* ht, const char* key, const char* value) {
 void ht_delete(ht_hash_table* ht, const char* key) {
 	int index = ht_hash(key, ht->size);
 	int i = 0; // count of collisions
+	int load = ht->count*100/ht->size;
+
+	if(load < 30){
+		ht_resize_down(ht);
+	}
+
 	while(ht->items[index] != NULL) {
 		ht_item* item = ht->items[index];
 		if(strcmp(item->key, key) == 0 && item != &HT_DELETED_ITEM) {
