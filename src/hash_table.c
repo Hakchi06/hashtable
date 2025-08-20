@@ -75,7 +75,7 @@ static int ht_get_next_index(int index, const int i, const int m, const char* ke
 	int step = get_max(1, sumK/m);
 	
 	if(step % 2 == 0) step++; // Ensure step is odd
-
+	
 	index = (index + step * i) % m;
 	return index;
 }
@@ -125,17 +125,16 @@ void ht_insert(ht_hash_table* ht, const char* key, const char* value) {
 	int index = ht_hash(item->key, ht->size);
 	int i = 0; // count of collisions
 	int load = ht->count*100/ht->size;
-
-	if(load > 70){
-		ht_resize_up(ht);
-	}
-
 	while (ht->items[index] != NULL) {
 		i++;
 		index = ht_get_next_index(index, i, ht->size, key);
 	}
 	ht->items[index] = item;
 	ht->count++;
+
+	if(load > 70){
+		ht_resize_up(ht);
+	}
 }
 
 // Function to delete an item from the hash table
@@ -143,11 +142,6 @@ void ht_delete(ht_hash_table* ht, const char* key) {
 	int index = ht_hash(key, ht->size);
 	int i = 0; // count of collisions
 	int load = ht->count*100/ht->size;
-
-	if(load < 30){
-		ht_resize_down(ht);
-	}
-
 	while(ht->items[index] != NULL) {
 		ht_item* item = ht->items[index];
 		if(strcmp(item->key, key) == 0 && item != &HT_DELETED_ITEM) {
@@ -157,6 +151,10 @@ void ht_delete(ht_hash_table* ht, const char* key) {
 		}
 		i++;
 		index = ht_get_next_index(index, i, ht->size, key);
+	}
+
+	if(load < 30){
+		ht_resize_down(ht);
 	}
 }
 
