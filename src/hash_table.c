@@ -65,17 +65,18 @@ static int ht_get_next_index(int index, const int i, const int m, const char* ke
 	/*
 	* This function calculates the next index in the hash table
 	* It's important that the size of the hash table is a power of two
-	* and sumK is an odd number
+	* and step (get_max(1, sumK/m)) is an odd number
 	*/
 
 	int sumK = 0; // Sum of ASCII values of the key characters
 	for(int k = 0; k < strlen(key); k++) {
 		sumK += key[k];
 	}
+	int step = get_max(1, sumK/m);
 	
-	if(sumK % 2 == 0) sumK++; // Ensure sumK is odd
+	if(step % 2 == 0) step++; // Ensure step is odd
 
-	index = (index + get_max(1, sumK/m) * i) % m;
+	index = (index + step * i) % m;
 	return index;
 }
 
