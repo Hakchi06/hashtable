@@ -51,8 +51,8 @@ static int ht_hash(const char* key, const int m) {
 	for(int i = 0; i < strlen(key); i++) {
 		hash = key[i] + (hash << 6) + (hash << 16) - hash;
 	}
-	int index = (int)(hash % m);
-	return (int)(index < 0) ? -index : index; // Ensure the index is non-negative
+	int index = hash % m;
+	return (index < 0) ? -index : index; // Ensure the index is non-negative
 }
 
 // Functions to fix collisions in the hash table
